@@ -5,64 +5,86 @@ Solution to the nqueens problem
 import sys
 
 
-def backtrack(r, n, cols, pos, neg, board):
-    """
-    backtrack function to find solution
-    """
-    if r == n:
-        res = []
-        for l in range(len(board)):
-            for k in range(len(board[l])):
-                if board[l][k] == 1:
-                    res.append([l, k])
-        print(res)
-        return
+def is_safe(board, row, col, N):
+    # Check if the current position is attacked by any other queen
 
-    for c in range(n):
-        if c in cols or (r + c) in pos or (r - c) in neg:
-            continue
+    # Check the row
+    for i in range(col):
+        if board[row][i] == 'Q':
+            return False
 
-        cols.add(c)
-        pos.add(r + c)
-        neg.add(r - c)
-        board[r][c] = 1
+    # Check the upper diagonal
+    i, j = row, col
+    while i >= 0 and j >= 0:
+        if board[i][j] == 'Q':
+            return False
+        i -= 1
+        j -= 1
 
-        backtrack(r+1, n, cols, pos, neg, board)
+    # Check the lower diagonal
+    i, j = row, col
+    while i < N and j >= 0:
+        if board[i][j] == 'Q':
+            return False
+        i += 1
+        j -= 1
 
-        cols.remove(c)
-        pos.remove(r + c)
-        neg.remove(r - c)
-        board[r][c] = 0
+    return True
 
 
-def nqueens(n):
-    """
-    Solution to nqueens problem
-    Args:
-        n (int): number of queens. Must be >= 4
-    Return:
-        List of lists representing coordinates of each
-        queen for all possible solutions
-    """
-    cols = set()
-    pos_diag = set()
-    neg_diag = set()
-    board = [[0] * n for i in range(n)]
+def solve_n_queens(N):
+    # Create an empty board
+    board = [['.' for _ in range(N)] for _ in range(N)]
 
-    backtrack(0, n, cols, pos_diag, neg_diag, board)
+    def backtrack(col):
+        # Base case: all queens are placed
+        if col >= N:
+            print_solution(board)
+            return
+
+        # Try placing a queen in each row of the current column
+        for row in range(N):
+            if is_safe(board, row, col, N):
+                # Place the queen
+                board[row][col] = 'Q'
+
+                # Recur for the next column
+                backtrack(col + 1)
+
+                # Remove the queen to backtrack
+                board[row][col] = '.'
+
+    # Start backtracking from the first column
+    backtrack(0)
 
 
-if __name__ == "__main__":
-    n = sys.argv
-    if len(n) != 2:
+def print_solution(board):
+    # Print the current board configuration
+    for row in board:
+        print(' '.join(row))
+    print()
+
+def main():
+    # Check the number of arguments
+    if len(sys.argv) != 2:
         print("Usage: nqueens N")
         sys.exit(1)
+
+    # Get the value of N from the command line argument
     try:
-        nn = int(n[1])
-        if nn < 4:
-            print("N must be at least 4")
-            sys.exit(1)
-        nqueens(nn)
+        N = int(sys.argv[1])
     except ValueError:
         print("N must be a number")
         sys.exit(1)
+
+    # Check if N is at least 4
+    if N < 4:
+        print("N must be at least 4")
+        sys.exit(1)
+
+    # Solve the N Queens problem
+    solve_n_queens(N)
+
+
+if __name__ == "__main__":
+    main()
